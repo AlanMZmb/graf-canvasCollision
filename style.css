@@ -1,0 +1,17 @@
+/* Quitar márgenes por defecto del navegador */
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Ajustar el body */
+body{
+    overflow: hidden; /* evita barras de scroll */
+    background: #111; /* fondo oscuro alrededor del canvas */
+}
+
+/* Canvas */
+canvas{
+    display: block;
+}
