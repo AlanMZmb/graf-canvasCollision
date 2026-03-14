@@ -1,194 +1,130 @@
 const canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
+let img = new Image();
+img.src = "hamburguesa.png"; 
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-const window_height = window.innerHeight;
-const window_width = window.innerWidth;
+let objects = [];
+let totalObjects = 20;
+let score = 0;
 
-canvas.height = window_height;
-canvas.width = window_width;
-canvas.style.background = "#ff8";
+const scoreText = document.getElementById("score");
 
-class Circle {
+class FallingCircle{
 
-constructor(x,y,radius,color,text,speed){
+constructor(){
+this.reset();
+}
 
-    this.posX = x;
-    this.posY = y;
+reset(){
 
-    this.radius = radius;
+this.radius = Math.random()*25 + 20;
 
-    this.originalColor = color;
+this.x = Math.random()*(canvas.width - this.radius*2) + this.radius;
 
-    this.text = text;
+this.y = -this.radius;
 
-    this.speed = speed;
+this.speed = getSpeed();
 
-    this.dx = (Math.random()*2-1) * this.speed;
-    this.dy = (Math.random()*2-1) * this.speed;
-
-    this.flash = 0; // duración del flash azul
+this.color = randomColor();
 
 }
 
-draw(context){
+update(){
 
-    context.beginPath();
+this.y += this.speed;
 
-    if(this.flash > 0){
-        context.strokeStyle = "#0000FF";
-        this.flash--;
-    }else{
-        context.strokeStyle = this.originalColor;
-    }
-
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.font = "20px Arial";
-
-    context.fillText(this.text,this.posX,this.posY);
-
-    context.lineWidth = 2;
-
-    context.arc(this.posX,this.posY,this.radius,0,Math.PI*2,false);
-
-    context.stroke();
-
-    context.closePath();
+if(this.y - this.radius > canvas.height){
+this.reset();
+}
 
 }
 
-update(context){
+draw(){
 
-    this.posX += this.dx;
-    this.posY += this.dy;
-
-    // rebote con bordes
-    if(this.posX + this.radius > window_width || this.posX - this.radius < 0){
-        this.dx = -this.dx;
-    }
-
-    if(this.posY + this.radius > window_height || this.posY - this.radius < 0){
-        this.dy = -this.dy;
-    }
-
-    this.draw(context);
+ctx.drawImage(
+img,
+this.x - this.radius,
+this.y - this.radius,
+this.radius*2,
+this.radius*2
+);
 
 }
+contains(mx,my){
 
-distance(other){
+let dx = this.x - mx;
+let dy = this.y - my;
 
-    let dx = this.posX - other.posX;
-    let dy = this.posY - other.posY;
+let distance = Math.sqrt(dx*dx + dy*dy);
 
-    return Math.sqrt(dx*dx + dy*dy);
-
-}
-
-checkCollision(other){
-
-    return this.distance(other) <= this.radius + other.radius;
-
-}
-
-bounce(other){
-
-    let tempDx = this.dx;
-    let tempDy = this.dy;
-
-    this.dx = other.dx;
-    this.dy = other.dy;
-
-    other.dx = tempDx;
-    other.dy = tempDy;
+return distance <= this.radius;
 
 }
 
 }
 
-let circles = [];
+function randomColor(){
+return `hsl(${Math.random()*360},70%,60%)`;
+}
 
-// evitar que se generen encima
-function isOverlapping(x,y,radius){
+function getSpeed(){
 
-for(let i=0;i<circles.length;i++){
+if(score > 15) return Math.random()*4 + 6;
+if(score > 10) return Math.random()*3 + 4;
 
-    let dx = x - circles[i].posX;
-    let dy = y - circles[i].posY;
-
-    let distance = Math.sqrt(dx*dx + dy*dy);
-
-    if(distance < radius + circles[i].radius){
-        return true;
-    }
+return Math.random()*2 + 2;
 
 }
 
-return false;
+function createObjects(){
+
+for(let i=0;i<totalObjects;i++){
+objects.push(new FallingCircle());
+}
 
 }
 
-function generateCircles(n){
+canvas.addEventListener("click",(e)=>{
 
-for(let i=0;i<n;i++){
+const rect = canvas.getBoundingClientRect();
 
-    let radius = Math.random()*30+20;
+const mouseX = e.clientX - rect.left;
+const mouseY = e.clientY - rect.top;
 
-    let x,y;
+for(let i=0;i<objects.length;i++){
 
-    do{
+if(objects[i].contains(mouseX,mouseY)){
 
-        x = Math.random()*(window_width-radius*2)+radius;
-        y = Math.random()*(window_height-radius*2)+radius;
+score++;
 
-    }while(isOverlapping(x,y,radius));
+scoreText.innerText = "Eliminados: " + score;
 
-    let color = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+objects[i].reset();
 
-    let speed = Math.random()*4+1;
-
-    let text = `C${i+1}`;
-
-    circles.push(new Circle(x,y,radius,color,text,speed));
+break;
 
 }
 
 }
 
-function detectCollisions(){
-
-for(let i=0;i<circles.length;i++){
-
-    for(let j=i+1;j<circles.length;j++){
-
-        if(circles[i].checkCollision(circles[j])){
-
-            circles[i].flash = 10;
-            circles[j].flash = 10;
-
-            circles[i].bounce(circles[j]);
-
-        }
-
-    }
-
-}
-
-}
+});
 
 function animate(){
 
-ctx.clearRect(0,0,window_width,window_height);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-circles.forEach(circle=>{
-    circle.update(ctx);
-});
+for(let obj of objects){
 
-detectCollisions();
+obj.update();
+obj.draw();
+
+}
 
 requestAnimationFrame(animate);
 
 }
 
-generateCircles(20);
-
+createObjects();
 animate();

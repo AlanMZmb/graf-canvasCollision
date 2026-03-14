@@ -1,17 +1,32 @@
-/* Quitar márgenes por defecto del navegador */
 *{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
-/* Ajustar el body */
 body{
-    overflow: hidden; /* evita barras de scroll */
-    background: #111; /* fondo oscuro alrededor del canvas */
+overflow:hidden;
+background:linear-gradient(#0f2027,#203a43,#2c5364);
+font-family:Arial;
 }
 
-/* Canvas */
 canvas{
-    display: block;
+display:block;
+}
+
+#score{
+position:absolute;
+top:20px;
+right:30px;
+font-size:28px;
+font-weight:bold;
+color:rgb(14, 7, 7);
+}
+
+body{
+overflow: hidden;
+background-image: url("fondo.jpg");
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
 }
